@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import gymnasium as gym
-from hw1_value_iteration import plot_value_and_policy, simulate_policy
+from Value_Iteration import plot_value_and_policy, simulate_policy
 
 def policy_evaluation(env, policy, gamma):
     n_state = env.observation_space.n

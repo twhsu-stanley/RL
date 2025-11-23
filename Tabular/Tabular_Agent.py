@@ -8,7 +8,7 @@ def is_first_visit(state_hist, action_hist, t):
             return False
     return True
 
-class Agent:
+class Tabular_Agent:
     def __init__(
         self,
         env: gym.Env,

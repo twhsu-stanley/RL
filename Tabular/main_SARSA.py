@@ -1,9 +1,9 @@
 import numpy as np
 import pickle
 import gymnasium as gym
-from agent import Agent
+from Tabular_Agent import Tabular_Agent
 
-"""Off-policy TD(0) Q-learning control"""
+"""On-policy TD(0) Sarsa control"""
 
 if __name__ == "__main__":
     # Create FrozenLake environment
@@ -17,10 +17,10 @@ if __name__ == "__main__":
     epsilon = 1.0
     learning_rate = 0.1
 
-    q_agent = Agent(env, gamma, learning_rate, epsilon)
-    evaluation_return = q_agent.q_learning(n_episodes)
-    q_agent.plot_value_and_policy(is_slippery=is_slippery, algorithm="Q-Learning")
+    sarsa_agent = Agent(env, gamma, learning_rate, epsilon)
+    sarsa_agent.sarsa(n_episodes)
+    sarsa_agent.plot_value_and_policy(is_slippery=is_slippery, algorithm="SARSA")
 
-    filename = f"Q_learning_slippery_{is_slippery}.pkl"
+    filename = f"SARSA_slippery_{is_slippery}.pkl"
     with open(filename, "wb") as f:
-        pickle.dump(q_agent.evaluation_return, f)
+        pickle.dump(sarsa_agent.evaluation_return, f)
