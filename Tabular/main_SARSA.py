@@ -2,6 +2,7 @@ import numpy as np
 import pickle
 import gymnasium as gym
 from Tabular_Agent import Tabular_Agent
+from utils_tabular import plot_frozenlake_tabular
 
 """On-policy TD(0) Sarsa control"""
 
@@ -14,12 +15,11 @@ if __name__ == "__main__":
 
     gamma = 0.95
     n_episodes = 80000
-    epsilon = 1.0
-    learning_rate = 0.1
+    learning_rate_init = 0.1
 
-    sarsa_agent = Agent(env, gamma, learning_rate, epsilon)
-    sarsa_agent.sarsa(n_episodes)
-    sarsa_agent.plot_value_and_policy(is_slippery=is_slippery, algorithm="SARSA")
+    sarsa_agent = Tabular_Agent(env, gamma, learning_rate_init)
+    sarsa_agent.SARSA(n_episodes)
+    plot_frozenlake_tabular(sarsa_agent, is_slippery=is_slippery, algorithm="SARSA")
 
     filename = f"SARSA_slippery_{is_slippery}.pkl"
     with open(filename, "wb") as f:

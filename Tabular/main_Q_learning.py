@@ -2,6 +2,7 @@ import numpy as np
 import pickle
 import gymnasium as gym
 from Tabular_Agent import Tabular_Agent
+from utils_tabular import plot_frozenlake_tabular
 
 """Off-policy TD(0) Q-learning control"""
 
@@ -14,12 +15,11 @@ if __name__ == "__main__":
 
     gamma = 0.95
     n_episodes = 80000
-    epsilon = 1.0
-    learning_rate = 0.1
+    learning_rate_init = 0.1
 
-    q_agent = Agent(env, gamma, learning_rate, epsilon)
-    evaluation_return = q_agent.q_learning(n_episodes)
-    q_agent.plot_value_and_policy(is_slippery=is_slippery, algorithm="Q-Learning")
+    q_agent = Tabular_Agent(env, gamma, learning_rate_init)
+    evaluation_return = q_agent.Q_learning(n_episodes)
+    plot_frozenlake_tabular(q_agent, is_slippery=is_slippery, algorithm="Q-Learning")
 
     filename = f"Q_learning_slippery_{is_slippery}.pkl"
     with open(filename, "wb") as f:

@@ -2,6 +2,7 @@ import numpy as np
 import pickle
 import gymnasium as gym
 from Tabular_Agent import Tabular_Agent
+from utils_tabular import plot_frozenlake_tabular
 
 """On-policy first-visit MC control"""
 
@@ -17,12 +18,11 @@ if __name__ == "__main__":
         n_episodes = 250000
     else:
         n_episodes = 100000
-    epsilon = 1.0
-    learning_rate = 0.1
+    learning_rate_init = 0.1
 
-    mc_agent = Agent(env, gamma, learning_rate, epsilon)
-    mc_agent.mc_control(n_episodes)
-    mc_agent.plot_value_and_policy(is_slippery=is_slippery, algorithm="MC Control")
+    mc_agent = Tabular_Agent(env, gamma, learning_rate_init)
+    mc_agent.MC_Control(n_episodes)
+    plot_frozenlake_tabular(mc_agent, is_slippery=is_slippery, algorithm="MC Control")
 
     filename = f"MC_slippery_{is_slippery}.pkl"
     with open(filename, "wb") as f:
