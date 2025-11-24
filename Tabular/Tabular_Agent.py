@@ -18,6 +18,7 @@ class Tabular_Agent:
         epsilon_init: float = 1.0,
         epsilon_lb: float = 0.01,
         epsilon_decay_rate: float = 0.999,
+        R: float = 0.0
     ):
         self.env = env
         self.gamma = gamma
@@ -38,8 +39,12 @@ class Tabular_Agent:
         self.evaluation_return = []
         self.evaluation_return.append(np.max(self.Q[0, :]))
 
-    def epsilon_greedy_policy(self, state, epsilon):
-        if np.random.rand() < epsilon:
+        ####################################################
+        # Below are parameters for robust tabular RL
+        self.R = R # for the R-contamination uncertainty set
+
+    def epsilon_greedy_policy(self, state):
+        if np.random.rand() <= self.epsilon:
             return np.random.choice(self.n_action)
         else:
             return np.argmax(self.Q[state, :])
@@ -56,7 +61,7 @@ class Tabular_Agent:
             reward_hist = []
             while True:
                 # Select action using epsilon-greedy policy given current Q
-                action = self.epsilon_greedy_policy(state, self.epsilon)
+                action = self.epsilon_greedy_policy(state)
                 action_hist.append(action)
 
                 state, reward, done, truncated, info = self.env.step(action)
@@ -95,12 +100,12 @@ class Tabular_Agent:
             
             state, info = self.env.reset() # starting state at 0
 
-            action = self.epsilon_greedy_policy(state, self.epsilon)
+            action = self.epsilon_greedy_policy(state)
             
             while True:
                 state_plus, reward, done, truncated, info = self.env.step(action)
 
-                action_plus = self.epsilon_greedy_policy(state_plus, self.epsilon)
+                action_plus = self.epsilon_greedy_policy(state_plus)
 
                 self.Q[state, action] += self.learning_rate * (reward + self.gamma * self.Q[state_plus, action_plus] - self.Q[state, action])
 
@@ -128,7 +133,7 @@ class Tabular_Agent:
             state, info = self.env.reset() # starting state at 0
 
             while True:
-                action = self.epsilon_greedy_policy(state, self.epsilon)
+                action = self.epsilon_greedy_policy(state)
 
                 state_plus, reward, done, truncated, info = self.env.step(action)
 
@@ -148,4 +153,102 @@ class Tabular_Agent:
             if episode >= self.episode_start_decay_lr:
                 self.learning_rate = self.learning_rate * self.lr_decay_rate
 
+    def Robust_Q_learning(self, n_episodes):
+        """Robust Q-learning with the R-contamination Model"""
+
+        for episode in range(n_episodes):
+            print(f"Episode {episode+1}/{n_episodes}")
+            
+            state, info = self.env.reset() # starting state at 0
+
+            while True:
+                action = self.epsilon_greedy_policy(state)
+
+                state_plus, reward, done, truncated, info = self.env.step(action)
+
+                V = np.max(self.Q, axis = 1) # state-value function for all states
+                # Worst-case transition for a 4-by-4 frozenlake
+                V_min = 1.0
+                if state >= 4:
+                    if V[state-4] < V_min:
+                        V_min = V[state-4]
+                        #action = 3
+                if state < 16-4:
+                    if V[state+4] < V_min:
+                        V_min = V[state+4]
+                        #action = 1
+                if state % 4 > 0:
+                    if V[state-1] < V_min:
+                        V_min = V[state-1]
+                        #action = 0
+                if state % 4 < 3:
+                    if V[state+1] < V_min:
+                        V_min = V[state+1]
+                        #action = 2
+                target  = reward + self.gamma * self.R * V_min + self.gamma * (1 - self.R) * V[state_plus]
+                #target  = reward + self.gamma * self.R * np.min(V) + self.gamma * (1 - self.R) * V[state_plus]
+                self.Q[state, action] += self.learning_rate * (target - self.Q[state, action]) 
+                
+                state = state_plus
+
+                self.evaluation_return.append(np.max(self.Q[0, :]))
+
+                if done or truncated:
+                    break
+            
+            # Schedule epsilon decay to impose GLIE
+            self.epsilon = max(self.epsilon_lb, self.epsilon * self.epsilon_decay_rate)
+
+            # Schedule learning rate decay
+            if episode >= self.episode_start_decay_lr:
+                self.learning_rate = self.learning_rate * self.lr_decay_rate
+
+    def sim_perturbed(self, p):
+        # p: with probability p, the transition is uniformly over S given (s,a); 
+        #    with probability 1-p, the transition is the true transition.
+
+        # Initialize the environment and state
+        state, info = self.env.reset() # starting state at 0
+
+        #state_hist = []
+        G = 0
+        I = 1
+        V = np.max(self.Q, axis = 1)
+        while True:
+            
+            if np.random.rand() <= p:
+                #action = np.random.choice(self.n_action)
+                # TODO: worst-case transition for 4-by-4 frozen lake
+                V_min = 1.0
+                if state >= 4:
+                    if V[state-4] < V_min:
+                        V_min = V[state-4]
+                        action = 3
+                if state < 16-4:
+                    if V[state+4] < V_min:
+                        V_min = V[state+4]
+                        action = 1
+                if state % 4 > 0:
+                    if V[state-1] < V_min:
+                        V_min = V[state-1]
+                        action = 0
+                if state % 4 < 3:
+                    if V[state+1] < V_min:
+                        V_min = V[state+1]
+                        action = 2
+            else:
+                # The transition follows the greedy policy with probability 1-p
+                action = np.argmax(self.Q[state, :])
+            
+            state_plus, reward, done, truncated, info = self.env.step(action)
+
+            G += I * reward
+            I = I * self.gamma
+
+            # Move to the next state
+            state = state_plus
+                
+            if done or truncated:
+                break
         
+        return G

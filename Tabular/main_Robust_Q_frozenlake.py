@@ -1,0 +1,61 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import pickle
+import gymnasium as gym
+from Tabular_Agent import Tabular_Agent
+from utils_tabular import plot_frozenlake_tabular, plot_evaluation_return
+
+"""Robust Q-learning control"""
+
+if __name__ == "__main__":
+    # Create FrozenLake environment
+    # State: 0 to 15
+    # Action: 0: Left, 1: Down, 2: Right, 3: Up
+    is_slippery = False
+    env = gym.make('FrozenLake-v1', desc=["SFFF", "FHFH", "FFFH", "HFFG"], 
+                   max_episode_steps = 100, map_name="4x4", is_slippery=is_slippery)
+    gamma = 0.95
+
+    # Train Robust Q
+    n_episodes = 9000
+    learning_rate_init = 0.1
+    R = 0.4
+    n_trials = 1
+    evaluation_return = []
+    for i in range(n_trials):    
+        robust_q_agent = Tabular_Agent(env, gamma, learning_rate_init, lr_decay_rate=0.9999, R = R)
+        robust_q_agent.Robust_Q_learning(n_episodes)
+        evaluation_return.append(robust_q_agent.evaluation_return)
+
+        if i == 0:
+            plot_frozenlake_tabular(robust_q_agent, is_slippery=is_slippery, algorithm="Robust Q-Learning")
+            plot_evaluation_return(evaluation_return)
+    
+    # Train regular Q
+    n_episodes = 6000
+    learning_rate_init = 0.1
+    n_trials = 1
+    evaluation_return = []
+    for i in range(n_trials):    
+        q_agent = Tabular_Agent(env, gamma, learning_rate_init)
+        q_agent.Q_learning(n_episodes)
+        evaluation_return.append(robust_q_agent.evaluation_return)
+
+        #if i == 0:
+        #    plot_frozenlake_tabular(q_agent, is_slippery=is_slippery, algorithm="Q-Learning")
+        #    plot_evaluation_return(evaluation_return)
+
+    # Test the policies on uncertain transitions
+    p = R
+    G_robust = 0
+    G = 0
+    n_episodes_test = 200000
+    for t in range(n_episodes_test):
+        G_robust += robust_q_agent.sim_perturbed(p)
+        G += q_agent.sim_perturbed(p)
+    G_robust = G_robust/n_episodes_test
+    G = G/n_episodes_test
+
+    print(f"Robust Q-agent MC return: G_robust = {G_robust}")
+    print(f"Q-agent MC return: G = {G}")
+    print(f"G_robust - G = {G_robust - G}")

@@ -18,7 +18,7 @@ if __name__ == "__main__":
     learning_rate_init = 0.1
 
     q_agent = Tabular_Agent(env, gamma, learning_rate_init)
-    evaluation_return = q_agent.Q_learning(n_episodes)
+    q_agent.Q_learning(n_episodes)
     plot_frozenlake_tabular(q_agent, is_slippery=is_slippery, algorithm="Q-Learning")
 
     filename = f"Q_learning_slippery_{is_slippery}.pkl"
