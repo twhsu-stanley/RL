@@ -28,7 +28,7 @@ if __name__ == "__main__":
     gamma = 0.95
     n_episodes = 2500
     epsilon_init = 0.999
-    learning_rate_init = 6e-4
+    learning_rate_init = 6e-4 # for ADAM
     epsilon_lb = 0.01
     epsilon_decay_rate = 0.9995
     batch_size = 32

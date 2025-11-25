@@ -18,12 +18,13 @@ if __name__ == "__main__":
 
     # Train Robust Q
     n_episodes = 9000
-    learning_rate_init = 0.1
     R = 0.4
     n_trials = 1
     evaluation_return = []
     for i in range(n_trials):    
-        robust_q_agent = Tabular_Agent(env, gamma, learning_rate_init, lr_decay_rate=0.9999, R = R)
+        robust_q_agent = Tabular_Agent(env, gamma, learning_rate_init = 0.5, lr_decay_rate=1,
+                                       epsilon_init = 1.0, epsilon_lb = 0.7, epsilon_decay_rate = 1,
+                                       R = R)
         robust_q_agent.Robust_Q_learning(n_episodes)
         evaluation_return.append(robust_q_agent.evaluation_return)
 
