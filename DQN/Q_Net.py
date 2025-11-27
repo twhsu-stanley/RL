@@ -15,5 +15,4 @@ class Q_Net(nn.Module):
         x = F.relu(self.layer1(x))
         x = F.relu(self.layer2(x))
         x = self.layer3(x)
-        #x = F.sigmoid(self.layer3(x))
         return x

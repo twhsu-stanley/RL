@@ -22,17 +22,17 @@ if __name__ == "__main__":
     # Action: 0: Left, 1: Down, 2: Right, 3: Up
     is_slippery = False
     env = gym.make('FrozenLake-v1', desc=["SFFF", "FHFH", "FFFH", "HFFG"], 
-                   max_episode_steps = 100, map_name="4x4", is_slippery=is_slippery)
+                   max_episode_steps=100, map_name="4x4", is_slippery=is_slippery)
     gamma = 0.95
 
-    n_episodes = 1000
+    n_episodes = 2000
     epsilon_init = 1.0
-    learning_rate_init = 6e-4
+    learning_rate_init = 5e-4
     epsilon_lb = 0.01
     epsilon_decay_rate = 0.9995
-    batch_size = 128
+    batch_size = 32
     replay_buffer_capacity = 4000
-    Q_net_target_update_freq = 20
+    Q_net_target_update_freq = 50
     R = 0.4
 
     n_trials = 1

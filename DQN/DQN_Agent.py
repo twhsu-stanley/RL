@@ -174,14 +174,16 @@ class DQN_Agent:
 
         # Compute r + \gamma * max_a' Q_{\theta-}(s',a')
         V_plus = torch.zeros((self.batch_size, 1))
-        #V_min = 0
+        V_worst = torch.zeros((self.batch_size, 1))
         with torch.no_grad():
             if next_state_batch.shape[0] > 0:
                 V_plus[not_none_mask] = self.Q_net_target(next_state_batch).max(1).values.unsqueeze(1)
-            # Find min V corresponding to the worst-case transition; currently only works for discrete state space
-            V_min = torch.min(self.Q_net_target(self.all_states).max(1).values).item()
-                #V_min = torch.min(self.Q_net_target(next_state_batch).max(1).values).item()
-        Q_target = reward_batch + self.gamma * (1 - self.R) * V_plus + self.gamma * self.R * V_min
+                
+                # Find min V corresponding to the worst-case transition
+                # TODO: This V_worst only works for frozenlake, whose rewards are mostly zeros except at the goal
+                V_worst[not_none_mask] = (self.Q_net_target(state_batch[not_none_mask]).min(1).values.unsqueeze(1) - 0)/ self.gamma
+            #V_worst = torch.min(self.Q_net_target(self.all_states).max(1).values).item() # This overestimates Q
+        Q_target = reward_batch + self.gamma * (1 - self.R) * V_plus + self.gamma * self.R * V_worst
 
         # Compute the 2-norm loss
         criterion = nn.MSELoss()
