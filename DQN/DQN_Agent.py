@@ -74,11 +74,6 @@ class DQN_Agent:
 
         # Parameters for robust DQN
         self.R = R
-        if R > 0:
-            if self.is_state_discrete:
-                self.all_states = self.convert_to_one_hot(torch.tensor(np.arange(self.dim_state)))
-            else:
-                raise NotImplementedError("Robust DQN currently doesn't work for continuous state space")
 
     def convert_to_one_hot(self, x):
         x = nn.functional.one_hot(x.long().squeeze(), num_classes=self.dim_state).float()
@@ -179,10 +174,10 @@ class DQN_Agent:
             if next_state_batch.shape[0] > 0:
                 V_plus[not_none_mask] = self.Q_net_target(next_state_batch).max(1).values.unsqueeze(1)
                 
-                # Find min V corresponding to the worst-case transition
-                # TODO: This V_worst only works for frozenlake, whose rewards are mostly zeros except at the goal
-                V_worst[not_none_mask] = (self.Q_net_target(state_batch[not_none_mask]).min(1).values.unsqueeze(1) - 0)/ self.gamma
-            #V_worst = torch.min(self.Q_net_target(self.all_states).max(1).values).item() # This overestimates Q
+                # TODO: Find the worst-case next value V_worst
+                # This V_worst only works for cartpole, whose rewards = 1 except at termination
+                V_worst[not_none_mask] = (self.Q_net_target(state_batch[not_none_mask]).min(1).values.unsqueeze(1) - 1)/ self.gamma
+            #V_worst = torch.min(self.Q_net_target(next_state_batch).max(1).values).item() # This overestimates Q
         Q_target = reward_batch + self.gamma * (1 - self.R) * V_plus + self.gamma * self.R * V_worst
 
         # Compute the 2-norm loss
@@ -322,12 +317,16 @@ class DQN_Agent:
         else:
             state = torch.tensor(state, dtype=torch.float32)
 
+        state_hist = [state]
+
         G = 0
         I = 1
         #V = np.max(self.Q, axis = 1)
         while True:
             if np.random.rand() <= p:
-                action = np.random.choice(self.dim_action)
+                #action = np.random.choice(self.dim_action)
+                with torch.no_grad():
+                    action = self.Q_net(state).min(0).indices.item()
                 state_plus, reward, done, truncated, info = self.env.step(action)
                 # TODO: worst-case transition for 4-by-4 frozen lake
                 """
@@ -365,11 +364,16 @@ class DQN_Agent:
                     state_plus = self.convert_to_one_hot(state_plus)
                 else:
                     state_plus = torch.tensor(state_plus, dtype = torch.float32)
-        
+
+            # Store data
+            state_hist.append(state)
+
+            if done or truncated:
+                break
+            
             # Move to the next state
             state = state_plus
                 
-            if done or truncated:
-                break
+            
         
-        return G
+        return G, state_hist

@@ -77,7 +77,7 @@ def plot_frozenlake_tabular(agent, **kwargs):
 
         plt.show()
 
-def plot_evaluation_return(evaluation_return):
+def calc_evaluation_return_mean_std(evaluation_return):
     min_len = float('inf')
     for i in range(len(evaluation_return)):
         if len(evaluation_return[i]) < min_len:
@@ -89,6 +89,10 @@ def plot_evaluation_return(evaluation_return):
 
     evaluation_return_mean = np.mean(evaluation_return_np, axis=0)
     evaluation_return_std = np.std(evaluation_return_np, axis=0)
+    return evaluation_return_mean, evaluation_return_std, evaluation_return_np
+
+def plot_evaluation_return(evaluation_return):
+    evaluation_return_mean, evaluation_return_std, evaluation_return_np = calc_evaluation_return_mean_std(evaluation_return)
 
     plt.figure()
     plt.plot(evaluation_return_mean)

@@ -69,7 +69,3 @@ if __name__ == "__main__":
     G_robust = G_robust/n_episodes_test
 
     print(f"Robust DQN-agent MC return: G_robust = {G_robust}")
-
-    #filename = f"DQN/Robust_DQN_frozenlake.pkl"
-    #with open(filename, "wb") as f:
-    #    pickle.dump(evaluation_return, f)
