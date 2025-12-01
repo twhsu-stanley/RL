@@ -81,7 +81,7 @@ def plot_frozenlake_dqn(agent, **kwargs):
 
         plt.show()
 
-def plot_cartpole_angles(angle_hist):
+def plot_cartpole_angles(angle_hist, **kwargs):
     plt.figure()
     max_len = 0
     for i in range(len(angle_hist)):
@@ -93,7 +93,7 @@ def plot_cartpole_angles(angle_hist):
     plt.grid()
     plt.xlabel("Time Steps")
     plt.ylabel("Pole angle (rad)")
-    plt.title("Cartpole: pole angle history")
+    plt.title(f"{kwargs.get("algorithm","")} Cartpole: pole angle history")
     #plt.show()
 
 def calc_evaluation_return_mean_std(evaluation_return):

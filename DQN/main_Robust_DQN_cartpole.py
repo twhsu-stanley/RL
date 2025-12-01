@@ -28,7 +28,7 @@ if __name__ == "__main__":
     Q_net_target_update_freq = 100
     R = 0.4
 
-    n_trials = 30 # 30
+    n_trials = 30
 
     evaluation_return = []
     for i in range(n_trials):
@@ -63,9 +63,9 @@ if __name__ == "__main__":
 
     #plot_evaluation_return(evaluation_return)
 
-    filename = f"DQN/Robust_DQN_cartpole_R{R}.pkl"
-    with open(filename, "wb") as f:
-        pickle.dump(evaluation_return, f)
+    #filename = f"DQN/Robust_DQN_cartpole_R{R}.pkl"
+    #with open(filename, "wb") as f:
+    #    pickle.dump(evaluation_return, f)
 
     ###################################################
     # Regular DQN for comparison
@@ -109,7 +109,7 @@ if __name__ == "__main__":
     print(f"DQN-agent MC return: G = {G}")
     print(f"G_robust - G = {G_robust - G}")
 
-    plot_cartpole_angles(angle_hist[:30])
-    plot_cartpole_angles(angle_hist_robust[:30])
+    plot_cartpole_angles(angle_hist[:30], algorithm = "DQN")
+    plot_cartpole_angles(angle_hist_robust[:30], algorithm = "Robust DQN")
 
     plt.show()
