@@ -12,9 +12,8 @@ class Tabular_Agent:
         self,
         env: gym.Env,
         gamma: float,
-        learning_rate_init: float,
-        lr_decay_rate: float = 0.999,
-        episode_start_decay_lr: int = 5000,
+        lr_init: float,
+        step_start_decay_lr: int = 10000,
         epsilon_init: float = 1.0,
         epsilon_lb: float = 0.01,
         epsilon_decay_rate: float = 0.999,
@@ -27,10 +26,12 @@ class Tabular_Agent:
 
         self.Q = np.zeros((self.n_state, self.n_action))
 
-        self.learning_rate = learning_rate_init
-        self.lr_decay_rate = lr_decay_rate
-        self.episode_start_decay_lr = episode_start_decay_lr
+        # Learning rate parameters
+        self.lr_init = lr_init
+        self.lr = lr_init
+        self.step_start_decay_lr = step_start_decay_lr
 
+        # Epsilon-greedy policy parameters
         self.epsilon_init = epsilon_init
         self.epsilon = epsilon_init
         self.epsilon_lb = epsilon_lb
@@ -51,6 +52,8 @@ class Tabular_Agent:
 
     def MC_Control(self, n_episodes):
         """On-policy first-visit MC control algorithm"""
+        
+        cum_step = 0
 
         for episode in range(n_episodes):
             print(f"Episode {episode+1}/{n_episodes}")
@@ -73,19 +76,21 @@ class Tabular_Agent:
 
             G = 0
             for t in reversed(range(len(action_hist))):
+                cum_step += 1
+
+                # Schedule learning rate decay
+                if cum_step >= self.step_start_decay_lr:
+                    self.lr = self.lr_init / (cum_step - self.step_start_decay_lr + 1)
+
                 G = self.gamma * G + reward_hist[t]
 
                 # check first visit
                 if is_first_visit(state_hist, action_hist, t):
-                    self.Q[state_hist[t], action_hist[t]] += self.learning_rate * (G - self.Q[state_hist[t], action_hist[t]])
+                    self.Q[state_hist[t], action_hist[t]] += self.lr * (G - self.Q[state_hist[t], action_hist[t]])
                     self.evaluation_return.append(np.max(self.Q[0, :]))
 
             # Schedule epsilon decay to impose GLIE
             self.epsilon = max(self.epsilon_lb, self.epsilon * self.epsilon_decay_rate)
-
-            # Schedule learning rate decay
-            if episode >= self.episode_start_decay_lr:
-                self.learning_rate = self.learning_rate * self.lr_decay_rate
 
         Q_star = self.Q.copy()
         policy_star = np.argmax(Q_star, axis=1)
@@ -94,6 +99,8 @@ class Tabular_Agent:
     
     def SARSA(self, n_episodes):
         """On-policy TD(0) Sarsa control"""
+
+        cum_step = 0
 
         for episode in range(n_episodes):
             print(f"Episode {episode+1}/{n_episodes}")
@@ -107,7 +114,7 @@ class Tabular_Agent:
 
                 action_plus = self.epsilon_greedy_policy(state_plus)
 
-                self.Q[state, action] += self.learning_rate * (reward + self.gamma * self.Q[state_plus, action_plus] - self.Q[state, action])
+                self.Q[state, action] += self.lr * (reward + self.gamma * self.Q[state_plus, action_plus] - self.Q[state, action])
 
                 state = state_plus
                 action = action_plus
@@ -116,16 +123,20 @@ class Tabular_Agent:
 
                 if done or truncated:
                     break
+
+                cum_step += 1
+
+                # Schedule learning rate decay
+                if cum_step >= self.step_start_decay_lr:
+                    self.lr = self.lr_init / (cum_step - self.step_start_decay_lr + 1)
             
             # Schedule epsilon decay to impose GLIE
             self.epsilon = max(self.epsilon_lb, self.epsilon * self.epsilon_decay_rate)
 
-            # Schedule learning rate decay
-            if episode >= self.episode_start_decay_lr:
-                self.learning_rate = self.learning_rate * self.lr_decay_rate
-
     def Q_learning(self, n_episodes):
         """Off-policy TD(0) Q-learning control"""
+
+        cum_step = 0
 
         for episode in range(n_episodes):
             print(f"Episode {episode+1}/{n_episodes}")
@@ -137,7 +148,7 @@ class Tabular_Agent:
 
                 state_plus, reward, done, truncated, info = self.env.step(action)
 
-                self.Q[state, action] += self.learning_rate * (reward + self.gamma * np.max(self.Q[state_plus,:]) - self.Q[state, action]) 
+                self.Q[state, action] += self.lr * (reward + self.gamma * np.max(self.Q[state_plus,:]) - self.Q[state, action]) 
                 
                 state = state_plus
 
@@ -145,16 +156,20 @@ class Tabular_Agent:
 
                 if done or truncated:
                     break
+
+                cum_step += 1
+
+                # Schedule learning rate decay
+                if cum_step >= self.step_start_decay_lr:
+                    self.lr = self.lr_init / (cum_step - self.step_start_decay_lr + 1)
             
             # Schedule epsilon decay to impose GLIE
             self.epsilon = max(self.epsilon_lb, self.epsilon * self.epsilon_decay_rate)
 
-            # Schedule learning rate decay
-            if episode >= self.episode_start_decay_lr:
-                self.learning_rate = self.learning_rate * self.lr_decay_rate
-
     def Robust_Q_learning(self, n_episodes):
         """Robust Q-learning with the R-contamination Model"""
+        
+        cum_step = 0
 
         for episode in range(n_episodes):
             print(f"Episode {episode+1}/{n_episodes}")
@@ -167,7 +182,8 @@ class Tabular_Agent:
                 state_plus, reward, done, truncated, info = self.env.step(action)
 
                 V = np.max(self.Q, axis = 1) # state-value function for all states
-                # Worst-case transition for a 4-by-4 frozenlake
+                # Worst-case transition
+                # TODO: the following works only for the 4-by-4 frozenlake
                 V_min = 1.0
                 if state >= 4:
                     if V[state-4] < V_min:
@@ -187,7 +203,8 @@ class Tabular_Agent:
                         #action = 2
                 target  = reward + self.gamma * self.R * V_min + self.gamma * (1 - self.R) * V[state_plus]
                 #target  = reward + self.gamma * self.R * np.min(V) + self.gamma * (1 - self.R) * V[state_plus]
-                self.Q[state, action] += self.learning_rate * (target - self.Q[state, action]) 
+                
+                self.Q[state, action] += self.lr * (target - self.Q[state, action]) 
                 
                 state = state_plus
 
@@ -195,13 +212,15 @@ class Tabular_Agent:
 
                 if done or truncated:
                     break
-            
+
+                cum_step += 1
+
+                # Schedule learning rate decay
+                if cum_step >= self.step_start_decay_lr:
+                    self.lr = self.lr_init / (cum_step - self.step_start_decay_lr + 1)
+
             # Schedule epsilon decay to impose GLIE
             self.epsilon = max(self.epsilon_lb, self.epsilon * self.epsilon_decay_rate)
-
-            # Schedule learning rate decay
-            if episode >= self.episode_start_decay_lr:
-                self.learning_rate = self.learning_rate * self.lr_decay_rate
 
     def sim_perturbed(self, p):
         # p: with probability p, the transition is uniformly over S given (s,a); 

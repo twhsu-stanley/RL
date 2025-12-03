@@ -19,10 +19,10 @@ if __name__ == "__main__":
     # Train Robust Q
     n_episodes = 4000
     R = 0.4
-    n_trials = 1
+    n_trials = 1 # 30
     evaluation_return = []
     for i in range(n_trials):    
-        robust_q_agent = Tabular_Agent(env, gamma, learning_rate_init = 0.1, lr_decay_rate = 0.9995,
+        robust_q_agent = Tabular_Agent(env, gamma, lr_init = 0.5, step_start_decay_lr = 10000,
                                        epsilon_init = 1.0, epsilon_lb = 0.1, epsilon_decay_rate = 0.9995,
                                        R = R)
         robust_q_agent.Robust_Q_learning(n_episodes)
@@ -39,12 +39,13 @@ if __name__ == "__main__":
     
     ###################################################################################
     # Regular Q for comparison
-    n_episodes = 4000
-    learning_rate_init = 0.1  
-    q_agent = Tabular_Agent(env, gamma, learning_rate_init)
+    n_episodes = 4000  
+    q_agent = Tabular_Agent(env, gamma, lr_init = 0.5, step_start_decay_lr = 10000,
+                            epsilon_init = 1.0, epsilon_lb = 0.1, epsilon_decay_rate = 0.9995,
+                            R = 0)
     q_agent.Q_learning(n_episodes)
     #plot_frozenlake_tabular(q_agent, is_slippery=is_slippery, algorithm="Q-Learning")
-    #plot_evaluation_return([q_agent.evaluation_return])
+    plot_evaluation_return([q_agent.evaluation_return])
 
     ###################################################################################
     # Test the policies on uncertain transitions
