@@ -202,6 +202,7 @@ class Tabular_Agent:
                         V_min = V[state+1]
                         #action = 2
                 target  = reward + self.gamma * self.R * V_min + self.gamma * (1 - self.R) * V[state_plus]
+                # TODO: or we can take the min V over all states
                 #target  = reward + self.gamma * self.R * np.min(V) + self.gamma * (1 - self.R) * V[state_plus]
                 
                 self.Q[state, action] += self.lr * (target - self.Q[state, action]) 
