@@ -34,6 +34,8 @@ if __name__ == "__main__":
     replay_buffer_capacity = 4000
     Q_net_target_update_freq = 50
     R = 0.4
+    C = 1.0
+    n_uncertainty_samples = 64
 
     n_trials = 1
 
@@ -48,7 +50,9 @@ if __name__ == "__main__":
                                      batch_size,
                                      replay_buffer_capacity,
                                      Q_net_target_update_freq,
-                                     R)
+                                     R,
+                                     C,
+                                     n_uncertainty_samples)
         
         robust_dqn_agent.DQN_learning(n_episodes)
 
@@ -65,7 +69,9 @@ if __name__ == "__main__":
     G_robust = 0
     n_episodes_test = 100000
     for t in range(n_episodes_test):
-        G_robust += robust_dqn_agent.DQN_sim_perturbed(p)
+        print(f"Episode {t+1}/{n_episodes_test}")
+        G_robust_episode, _ = robust_dqn_agent.DQN_sim_perturbed(p, C=C)
+        G_robust += G_robust_episode
     G_robust = G_robust/n_episodes_test
 
     print(f"Robust DQN-agent MC return: G_robust = {G_robust}")

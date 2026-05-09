@@ -20,15 +20,17 @@ if __name__ == "__main__":
     gamma = 0.90
     n_episodes = 900
     epsilon_init = 0.999
-    learning_rate_init = 5e-4 # 1e-3
+    learning_rate_init = 2e-4 # 1e-3
     epsilon_lb = 0.01
     epsilon_decay_rate = 0.999
     batch_size = 64
     replay_buffer_capacity = 4000
     Q_net_target_update_freq = 100
-    R = 0.4
+    R = 0.1
+    C = 0.1
+    n_uncertainty_samples = 16
 
-    n_trials = 30
+    n_trials = 1
 
     evaluation_return = []
     for i in range(n_trials):
@@ -43,7 +45,9 @@ if __name__ == "__main__":
                                      batch_size,
                                      replay_buffer_capacity,
                                      Q_net_target_update_freq,
-                                     R)
+                                     R,
+                                     C,
+                                     n_uncertainty_samples)
         
         robust_dqn_agent.DQN_learning(n_episodes)
 
@@ -61,11 +65,11 @@ if __name__ == "__main__":
                 angle_hist.append(state_hist[:,2])
             plot_cartpole_angles(angle_hist)
 
-    #plot_evaluation_return(evaluation_return)
+    plot_evaluation_return(evaluation_return)
 
-    #filename = f"DQN/Robust_DQN_cartpole_R{R}.pkl"
-    #with open(filename, "wb") as f:
-    #    pickle.dump(evaluation_return, f)
+    filename = f"DQN/Robust_DQN_cartpole_R{R}_C{C}.pkl"
+    with open(filename, "wb") as f:
+        pickle.dump(evaluation_return, f)
 
     ###################################################
     # Regular DQN for comparison
@@ -94,11 +98,11 @@ if __name__ == "__main__":
     n_test = 10000
     for t in range(n_test):
         print(f"Episode {t+1}/{n_test}")
-        G_robust_episode, state_hist_robust = robust_dqn_agent.DQN_sim_perturbed(p)
+        G_robust_episode, state_hist_robust = robust_dqn_agent.DQN_sim_perturbed(p, C=C)
         angle_hist_robust.append(np.array(state_hist_robust)[:,2])
         G_robust += G_robust_episode
         
-        G_episode, state_hist = dqn_agent.DQN_sim_perturbed(p)
+        G_episode, state_hist = dqn_agent.DQN_sim_perturbed(p, C=C)
         angle_hist.append(np.array(state_hist)[:,2])
         G += G_episode
 
@@ -112,4 +116,4 @@ if __name__ == "__main__":
     plot_cartpole_angles(angle_hist[:30], algorithm = "DQN")
     plot_cartpole_angles(angle_hist_robust[:30], algorithm = "Robust DQN")
 
-    plt.show()
+    #plt.show()

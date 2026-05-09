@@ -94,7 +94,7 @@ def plot_cartpole_angles(angle_hist, **kwargs):
     plt.xlabel("Time Steps")
     plt.ylabel("Pole angle (rad)")
     plt.title(f"{kwargs.get("algorithm","")} Cartpole: pole angle history")
-    #plt.show()
+    plt.show()
 
 def calc_evaluation_return_mean_std(evaluation_return):
     min_len = float('inf')
@@ -120,12 +120,13 @@ def plot_evaluation_return(evaluation_return):
     plt.ylabel("Evaluation Return V(initial state)")
     plt.title("DQN Evaluation Return over Culmulative Time Steps")
     
-    plt.figure()
-    for i in range(len(evaluation_return)):
-        plt.plot(evaluation_return_np[i,:])
-    plt.grid()
-    plt.xlabel("Culmulative Time Steps")
-    plt.ylabel("Evaluation Return V(initial state)")
-    plt.title("DQN Evaluation Return over Culmulative Time Steps")
-    #plt.show()
+    #plt.figure()
+    #for i in range(len(evaluation_return)):
+    #    plt.plot(evaluation_return_np[i,:])
+    #plt.grid()
+    #plt.xlabel("Culmulative Time Steps")
+    #plt.ylabel("Evaluation Return V(initial state)")
+    #plt.title("DQN Evaluation Return over Culmulative Time Steps")
+    
+    plt.show()
 
