@@ -17,7 +17,7 @@ with open("Tabular/Robust_Q_frozenlake_R0.2.pkl", "rb") as f:
     evaluation_return_02 = pickle.load(f)
 mean_02, std_02, _ = calc_evaluation_return_mean_std(evaluation_return_02)
 
-with open("Tabular/Robust_Q_frozenlake_R0.4.pkl", "rb") as f:
+with open("Tabular/Robust_Q_frozenlake_R0.4_C1.0.pkl", "rb") as f:
     evaluation_return_04 = pickle.load(f)
 mean_04, std_04, _ = calc_evaluation_return_mean_std(evaluation_return_04)
 

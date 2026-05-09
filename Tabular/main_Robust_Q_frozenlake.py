@@ -18,24 +18,25 @@ if __name__ == "__main__":
 
     # Train Robust Q
     n_episodes = 4000
-    R = 0.4
-    n_trials = 1 # 30
+    R = 0.2 # Contamination probability for the R-C uncertainty set
+    C = 2.0 # Grid-coordinate deviation radius for the R-C uncertainty set
+    n_trials = 30
     evaluation_return = []
     for i in range(n_trials):    
         robust_q_agent = Tabular_Agent(env, gamma, lr_init = 0.5, step_start_decay_lr = 10000,
                                        epsilon_init = 1.0, epsilon_lb = 0.1, epsilon_decay_rate = 0.9995,
-                                       R = R)
+                                       R = R, C = C)
         robust_q_agent.Robust_Q_learning(n_episodes)
         evaluation_return.append(robust_q_agent.evaluation_return)
 
-        #if i == 0:
-            #plot_frozenlake_tabular(robust_q_agent, is_slippery=is_slippery, algorithm="Robust Q-Learning")
-            #plot_evaluation_return(evaluation_return)
-    #plot_evaluation_return(evaluation_return)
+        if i == 0:
+            plot_frozenlake_tabular(robust_q_agent, is_slippery=is_slippery, algorithm="Robust Q-Learning")
+            plot_evaluation_return(evaluation_return)
+    plot_evaluation_return(evaluation_return)
 
-    #filename = f"Tabular/Robust_Q_frozenlake_R{R}.pkl"
-    #with open(filename, "wb") as f:
-    #    pickle.dump(evaluation_return, f)
+    filename = f"Tabular/Robust_Q_frozenlake_R{R}_C{C}.pkl"
+    with open(filename, "wb") as f:
+        pickle.dump(evaluation_return, f)
     
     ###################################################################################
     # Regular Q for comparison
@@ -45,7 +46,7 @@ if __name__ == "__main__":
                             R = 0)
     q_agent.Q_learning(n_episodes)
     #plot_frozenlake_tabular(q_agent, is_slippery=is_slippery, algorithm="Q-Learning")
-    plot_evaluation_return([q_agent.evaluation_return])
+    #plot_evaluation_return([q_agent.evaluation_return])
 
     ###################################################################################
     # Test the policies on uncertain transitions
@@ -55,8 +56,8 @@ if __name__ == "__main__":
     n_test = 50000
     for t in range(n_test):
         print(f"Episode {t+1}/{n_test}")
-        G_robust += robust_q_agent.sim_perturbed(p)
-        G += q_agent.sim_perturbed(p)
+        G_robust += robust_q_agent.sim_perturbed(p, C=C)
+        G += q_agent.sim_perturbed(p, C=C)
     G_robust = G_robust/n_test
     G = G/n_test
 
