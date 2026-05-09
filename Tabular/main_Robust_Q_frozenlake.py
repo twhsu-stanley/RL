@@ -19,7 +19,7 @@ if __name__ == "__main__":
     # Train Robust Q
     n_episodes = 4000
     R = 0.2 # Contamination probability for the R-C uncertainty set
-    C = 2.0 # Grid-coordinate deviation radius for the R-C uncertainty set
+    C = 0.0 # Grid-coordinate deviation radius for the R-C uncertainty set
     n_trials = 30
     evaluation_return = []
     for i in range(n_trials):    
