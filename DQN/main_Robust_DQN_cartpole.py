@@ -24,10 +24,10 @@ if __name__ == "__main__":
     epsilon_lb = 0.01
     epsilon_decay_rate = 0.999
     batch_size = 64
-    replay_buffer_capacity = 4000
+    replay_buffer_capacity = 1000
     Q_net_target_update_freq = 100
-    R = 0.1
-    C = 0.2
+    R = 0.4
+    C = 0.05
     n_uncertainty_samples = 16
 
     n_trials = 10

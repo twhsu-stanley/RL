@@ -21,6 +21,7 @@ mean_R01_C02, std_R01_C02, _ = calc_evaluation_return_mean_std(evaluation_return
 
 with open("DQN/Robust_DQN_cartpole_R0.2_C0.05.pkl", "rb") as f:
     evaluation_return_R02_C005 = pickle.load(f)
+evaluation_return_R02_C005.pop(7)
 mean_R02_C005, std_R02_C005, _ = calc_evaluation_return_mean_std(evaluation_return_R02_C005)
 
 plt.figure()
@@ -33,7 +34,7 @@ plt.fill_between(range(len(mean_R01_C01)), mean_R01_C01 - std_R01_C01, mean_R01_
 plt.plot(mean_R01_C02, label = "R = 0.1, C = 0.2")
 plt.fill_between(range(len(mean_R01_C02)), mean_R01_C02 - std_R01_C02, mean_R01_C02 + std_R01_C02, alpha=0.2)
 plt.grid()
-#plt.ylim(0, 0.8)
+plt.xlim(0, 35000)
 plt.xlabel("Cumulative Time Steps")
 plt.ylabel("Evaluation Return:  V(initial state)")
 plt.title("Learning Curve of Robust DQN on Cartpole: R = 0.1")
@@ -47,7 +48,7 @@ plt.fill_between(range(len(mean_R01_C005)), mean_R01_C005 - std_R01_C005, mean_R
 plt.plot(mean_R02_C005, label = "R = 0.2, C = 0.05")
 plt.fill_between(range(len(mean_R02_C005)), mean_R02_C005 - std_R02_C005, mean_R02_C005 + std_R02_C005, alpha=0.2)
 plt.grid()
-#plt.ylim(0, 0.8)
+plt.xlim(0, 35000)
 plt.xlabel("Cumulative Time Steps")
 plt.ylabel("Evaluation Return:  V(initial state)")
 plt.title("Learning Curve of Robust DQN on Cartpole: C = 0.05")
