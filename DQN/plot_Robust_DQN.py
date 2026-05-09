@@ -4,7 +4,7 @@ import numpy as np
 from utils_DQN import calc_evaluation_return_mean_std, plot_evaluation_return
 import gymnasium as gym
 
-# Plot frozenlake
+
 with open("DQN/Robust_DQN_cartpole_R0.0.pkl", "rb") as f:
     evaluation_return_0 = pickle.load(f)
 mean_0, std_0, _ = calc_evaluation_return_mean_std(evaluation_return_0)

@@ -20,17 +20,17 @@ if __name__ == "__main__":
     gamma = 0.90
     n_episodes = 900
     epsilon_init = 0.999
-    learning_rate_init = 2e-4 # 1e-3
+    learning_rate_init = 5e-4 # 1e-3
     epsilon_lb = 0.01
     epsilon_decay_rate = 0.999
     batch_size = 64
     replay_buffer_capacity = 4000
     Q_net_target_update_freq = 100
     R = 0.1
-    C = 0.1
+    C = 0.2
     n_uncertainty_samples = 16
 
-    n_trials = 1
+    n_trials = 10
 
     evaluation_return = []
     for i in range(n_trials):
